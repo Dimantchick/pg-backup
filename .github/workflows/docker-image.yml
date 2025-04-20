@@ -1,0 +1,60 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+env:
+  IMAGE_ID: 'ghcr.io/dimantchick/spring-base-image:'
+
+jobs:
+
+  build-docker-images:
+    strategy:
+      matrix:
+        version: [ 11, 17, 21 ]
+    permissions:
+      contents: read
+      packages: write
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{github.actor}}
+        password: ${{secrets.GITHUB_TOKEN}}
+
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag ${{ env.IMAGE_ID }}${{ matrix.version }} --build-arg JAVA_VERSION=${{ matrix.version }}
+
+    - name: Push image to GitHub Container Registry
+      run: docker push ${{ env.IMAGE_ID }}${{ matrix.version }}
+
+  build-fonts-docker-images:
+    strategy:
+      matrix:
+        version: [ 11, 17, 21 ]
+    permissions:
+      contents: read
+      packages: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{github.actor}}
+          password: ${{secrets.GITHUB_TOKEN}}
+
+      - name: Build the Docker image
+        run: docker build . --file Dockerfile-fonts --tag ${{ env.IMAGE_ID }}${{ matrix.version }}-fonts --build-arg JAVA_VERSION=${{ matrix.version }}
+
+      - name: Push image to GitHub Container Registry
+        run: docker push ${{ env.IMAGE_ID }}${{ matrix.version }}-fonts
