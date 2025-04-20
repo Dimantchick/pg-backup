@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   pg-backup:
-    image: postgres-backup
+    image: ghcr.io/dimantchick/pg-backup:latest
     container_name: pg-backup
     restart: unless-stopped
     environment:
