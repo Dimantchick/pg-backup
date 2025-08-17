@@ -12,12 +12,13 @@ if [ -n "${S3_ENDPOINT}" ] && [ -n "${AWS_ACCESS_KEY_ID}" ] && [ -n "${AWS_SECRE
       "accessKey": "${AWS_ACCESS_KEY_ID}",
       "secretKey": "${AWS_SECRET_ACCESS_KEY}",
       "api": "s3v4",
-      "path": "auto"
+      "path": "auto",
+      "region": "${S3_REGION}"
     }
   }
 }
 EOF
-    echo "✅ MinIO Client настроен для ${S3_ENDPOINT}"
+    echo "✅ MinIO Client настроен для ${S3_ENDPOINT} (регион: ${S3_REGION})"
 else
     echo "⚠️  Переменные S3 не заданы, MinIO Client не настроен"
 fi

@@ -2,7 +2,7 @@
 
 # Проверка обязательных переменных
 required_vars=("POSTGRES_PASSWORD" "POSTGRES_HOST" "POSTGRES_USER" "POSTGRES_DB"
-               "S3_BUCKET" "AWS_ACCESS_KEY_ID" "AWS_SECRET_ACCESS_KEY" "S3_ENDPOINT")
+               "S3_BUCKET" "AWS_ACCESS_KEY_ID" "AWS_SECRET_ACCESS_KEY" "S3_ENDPOINT" "S3_REGION")
 for var in "${required_vars[@]}"; do
     if [ -z "${!var}" ]; then
         echo "❌ Ошибка: Не задана переменная $var" >&2
