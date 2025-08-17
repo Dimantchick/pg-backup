@@ -2,10 +2,10 @@
 
 # Проверка обязательных переменных
 required_vars=("POSTGRES_PASSWORD" "POSTGRES_HOST" "POSTGRES_USER" "POSTGRES_DB"
-               "MC_HOST" "MC_BUCKET")
+               "S3_BUCKET" "AWS_ACCESS_KEY_ID" "AWS_SECRET_ACCESS_KEY")
 for var in "${required_vars[@]}"; do
     if [ -z "${!var}" ]; then
-        echo "Ошибка: Не задана переменная $var" >&2
+        echo "❌ Ошибка: Не задана переменная $var" >&2
         exit 1
     fi
 done
@@ -17,18 +17,18 @@ echo "[$(date)] Создание бэкапа ${POSTGRES_DB}..."
 
 # Создаем бэкап
 pg_dump -h "${POSTGRES_HOST}" -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" | gzip > "${TMP_BACKUP}" || {
-    echo "Ошибка создания бэкапа!"
+    echo "❌ Ошибка создания бэкапа!"
     rm -f "${TMP_BACKUP}"
     exit 1
 }
 
-# Загружаем в MinIO
-echo "Загрузка в MinIO..."
-mc cp "${TMP_BACKUP}" "${MC_HOST}/${MC_BUCKET}/" || {
-    echo "Ошибка загрузки в MinIO!"
+# Загружаем в S3
+echo "Загрузка в S3..."
+mc cp "${TMP_BACKUP}" "s3/${S3_BUCKET}/" || {
+    echo "❌ Ошибка загрузки в S3!"
     echo "Проверьте:"
-    echo "1. Доступность MinIO сервера"
-    echo "2. Корректность настроек MC_HOST"
+    echo "1. Доступность S3 эндпоинта"
+    echo "2. Корректность ключей доступа"
     echo "3. Наличие прав на запись в бакет"
     rm -f "${TMP_BACKUP}"
     exit 1
@@ -38,7 +38,7 @@ rm -f "${TMP_BACKUP}"
 # Очистка старых бэкапов
 if [ -n "${DAYS_TO_KEEP}" ] && [ "${DAYS_TO_KEEP}" -gt 0 ]; then
     echo "Удаление бэкапов старше ${DAYS_TO_KEEP} дней..."
-    mc ls "${MC_HOST}/${MC_BUCKET}/" | grep -E "${POSTGRES_DB}_[0-9]{4}-[0-9]{2}-[0-9]{2}.*\.sql\.gz$" | \
+    mc ls "s3/${S3_BUCKET}/" | grep -E "${POSTGRES_DB}_[0-9]{4}-[0-9]{2}-[0-9]{2}.*\.sql\.gz$" | \
     while read -r line; do
         file_date=$(echo "${line}" | awk '{print $1" "$2" "$3" "$4" "$5" "$6}')
         file_name=$(echo "${line}" | awk '{print $NF}')
@@ -51,15 +51,15 @@ if [ -n "${DAYS_TO_KEEP}" ] && [ "${DAYS_TO_KEEP}" -gt 0 ]; then
 
             if [ "${age_days}" -gt "${DAYS_TO_KEEP}" ]; then
                 echo "Удаляем: ${file_name} (${age_days} дней)"
-                if ! mc rm "${MC_HOST}/${MC_BUCKET}/${file_name}"; then
-                    echo "Предупреждение: не удалось удалить ${file_name}"
+                if ! mc rm "s3/${S3_BUCKET}/${file_name}"; then
+                    echo "⚠️ Предупреждение: не удалось удалить ${file_name}"
                 fi
             fi
         else
-            echo "Не удалось определить дату файла: ${file_name}"
+            echo "⚠️ Не удалось определить дату файла: ${file_name}"
         fi
     done
 fi
 
-echo "[$(date)] Бэкап завершен. Файл: ${MC_HOST}/${MC_BUCKET}/$(basename ${TMP_BACKUP})"
+echo "✅ [$(date)] Бэкап завершен. Файл: s3/${S3_BUCKET}/$(basename ${TMP_BACKUP})"
 exit 0
