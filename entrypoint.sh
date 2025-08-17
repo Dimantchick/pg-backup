@@ -1,13 +1,13 @@
 #!/bin/sh
 
-# Настройка MinIO client
+# Настройка MinIO Client (mcli)
 if [ -n "${S3_ENDPOINT}" ] && [ -n "${AWS_ACCESS_KEY_ID}" ] && [ -n "${AWS_SECRET_ACCESS_KEY}" ]; then
-    mkdir -p ~/.mc
-    cat > ~/.mc/config.json <<EOF
+    mkdir -p ~/.mcli
+    cat > ~/.mcli/config.json <<EOF
 {
   "version": "10",
   "aliases": {
-    "s3": {
+    "mys3": {
       "url": "${S3_ENDPOINT}",
       "accessKey": "${AWS_ACCESS_KEY_ID}",
       "secretKey": "${AWS_SECRET_ACCESS_KEY}",
@@ -17,9 +17,9 @@ if [ -n "${S3_ENDPOINT}" ] && [ -n "${AWS_ACCESS_KEY_ID}" ] && [ -n "${AWS_SECRE
   }
 }
 EOF
-    echo "✅ MinIO client настроен для ${S3_ENDPOINT}"
+    echo "✅ MinIO Client настроен для ${S3_ENDPOINT}"
 else
-    echo "⚠️  Переменные S3 не заданы, MinIO client не настроен"
+    echo "⚠️  Переменные S3 не заданы, MinIO Client не настроен"
 fi
 
 # Настройка cron

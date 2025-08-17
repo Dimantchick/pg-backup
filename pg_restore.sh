@@ -2,7 +2,7 @@
 
 # Проверка обязательных переменных
 required_vars=("POSTGRES_PASSWORD" "POSTGRES_HOST" "POSTGRES_USER" "POSTGRES_DB"
-               "S3_BUCKET" "AWS_ACCESS_KEY_ID" "AWS_SECRET_ACCESS_KEY")
+               "S3_BUCKET" "AWS_ACCESS_KEY_ID" "AWS_SECRET_ACCESS_KEY" "S3_ENDPOINT")
 for var in "${required_vars[@]}"; do
     if [ -z "${!var}" ]; then
         echo "❌ Ошибка: Не задана переменная $var" >&2
@@ -14,7 +14,7 @@ export PGPASSWORD="${POSTGRES_PASSWORD}"
 
 if [ -z "$1" ]; then
     echo "Доступные бэкапы:"
-    mcli ls "s3/${S3_BUCKET}/" | grep -E "${POSTGRES_DB}_[0-9]{4}-[0-9]{2}-[0-9]{2}.*\.sql\.gz$" || {
+    mcli ls "mys3/${S3_BUCKET}/" | grep -E "${POSTGRES_DB}_[0-9]{4}-[0-9]{2}-[0-9]{2}.*\.sql\.gz$" || {
         echo "❌ Ошибка при получении списка бэкапов" >&2
         exit 1
     }
@@ -30,7 +30,7 @@ echo "[$(date)] Начало восстановления базы ${POSTGRES_DB
 
 # Загрузка файла из S3
 echo "1. Загрузка файла из S3..."
-mcli cp "s3/${S3_BUCKET}/${FILE}" "${TMP_FILE}" || {
+mcli cp "mys3/${S3_BUCKET}/${FILE}" "${TMP_FILE}" || {
     echo "❌ Ошибка: Не удалось загрузить файл ${FILE} из S3" >&2
     exit 1
 }

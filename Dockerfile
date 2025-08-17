@@ -5,8 +5,7 @@ RUN apk add --no-cache \
     minio-client \
     bash \
     tzdata \
-    busybox-extras \
-    curl
+    busybox-extras
 
 WORKDIR /app
 

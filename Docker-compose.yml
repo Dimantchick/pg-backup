@@ -18,7 +18,6 @@ services:
       - DAYS_TO_KEEP=${DAYS_TO_KEEP:-30}
       - TZ=${TZ:-Europe/Moscow}
       - CRON_SCHEDULE=2 0 * * *
-      - MC_HOST=ozonbot-pg-backup/https://minio.example.com:9000/ACCESSKEY/SECRETKEY
       # Дополнительные настройки для надежности
     healthcheck:
       test: [ "CMD-SHELL", "pgrep crond || exit 1" ]
