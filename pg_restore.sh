@@ -1,16 +1,20 @@
 #!/bin/bash
 
 # Проверка обязательных переменных
-if [ -z "${POSTGRES_PASSWORD}" ] || [ -z "${S3_REGION}" ]; then
-    echo "Ошибка: Не заданы необходимые переменные окружения" >&2
-    exit 1
-fi
+required_vars=("POSTGRES_PASSWORD" "POSTGRES_HOST" "POSTGRES_USER" "POSTGRES_DB"
+               "MC_HOST" "MC_BUCKET")
+for var in "${required_vars[@]}"; do
+    if [ -z "${!var}" ]; then
+        echo "Ошибка: Не задана переменная $var" >&2
+        exit 1
+    fi
+done
 
 export PGPASSWORD="${POSTGRES_PASSWORD}"
 
 if [ -z "$1" ]; then
-    echo "Доступные бэкапы в регионе ${S3_REGION}:"
-    aws s3 --endpoint-url "${S3_ENDPOINT}" --region "${S3_REGION}" ls "s3://${S3_BUCKET}/" || {
+    echo "Доступные бэкапы:"
+    mc ls "${MC_HOST}/${MC_BUCKET}/" | grep -E "${POSTGRES_DB}_[0-9]{4}-[0-9]{2}-[0-9]{2}.*\.sql\.gz$" || {
         echo "Ошибка при получении списка бэкапов" >&2
         exit 1
     }
@@ -22,12 +26,12 @@ fi
 FILE="$1"
 TMP_FILE="/tmp/restore_${FILE}"
 
-echo "[$(date)] Начало восстановления базы ${POSTGRES_DB} из файла ${FILE} (регион: ${S3_REGION})..."
+echo "[$(date)] Начало восстановления базы ${POSTGRES_DB} из файла ${FILE}..."
 
-# Загрузка файла из S3
-echo "1. Загрузка файла из S3..."
-aws s3 --endpoint-url "${S3_ENDPOINT}" --region "${S3_REGION}" cp "s3://${S3_BUCKET}/${FILE}" "${TMP_FILE}" || {
-    echo "Ошибка: Не удалось загрузить файл ${FILE} из S3" >&2
+# Загрузка файла из MinIO
+echo "1. Загрузка файла из MinIO..."
+mc cp "${MC_HOST}/${MC_BUCKET}/${FILE}" "${TMP_FILE}" || {
+    echo "Ошибка: Не удалось загрузить файл ${FILE} из MinIO" >&2
     exit 1
 }
 
