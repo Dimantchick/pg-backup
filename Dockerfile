@@ -1,8 +1,8 @@
-FROM alpine:latest
+FROM alpine:3.22.1
 
 RUN apk add --no-cache \
     postgresql-client \
-    aws-cli \
+    minio-client \
     bash \
     tzdata \
     busybox-extras
@@ -10,7 +10,7 @@ RUN apk add --no-cache \
 WORKDIR /app
 
 COPY pg_backup.sh pg_restore.sh entrypoint.sh ./
-RUN chmod +x pg_backup.sh pg_restore.sh entrypoint.sh
+RUN chmod +x *.sh
 
 ENTRYPOINT ["/app/entrypoint.sh"]
 CMD ["crond", "-f", "-l", "8", "-L", "/dev/stdout"]
