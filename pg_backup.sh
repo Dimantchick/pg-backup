@@ -24,7 +24,7 @@ pg_dump -h "${POSTGRES_HOST}" -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" | gzip >
 
 # Загружаем в S3
 echo "Загрузка в S3..."
-mc cp "${TMP_BACKUP}" "s3/${S3_BUCKET}/" || {
+mcli cp "${TMP_BACKUP}" "s3/${S3_BUCKET}/" || {
     echo "❌ Ошибка загрузки в S3!"
     echo "Проверьте:"
     echo "1. Доступность S3 эндпоинта"
@@ -38,7 +38,7 @@ rm -f "${TMP_BACKUP}"
 # Очистка старых бэкапов
 if [ -n "${DAYS_TO_KEEP}" ] && [ "${DAYS_TO_KEEP}" -gt 0 ]; then
     echo "Удаление бэкапов старше ${DAYS_TO_KEEP} дней..."
-    mc ls "s3/${S3_BUCKET}/" | grep -E "${POSTGRES_DB}_[0-9]{4}-[0-9]{2}-[0-9]{2}.*\.sql\.gz$" | \
+    mcli ls "s3/${S3_BUCKET}/" | grep -E "${POSTGRES_DB}_[0-9]{4}-[0-9]{2}-[0-9]{2}.*\.sql\.gz$" | \
     while read -r line; do
         file_date=$(echo "${line}" | awk '{print $1" "$2" "$3" "$4" "$5" "$6}')
         file_name=$(echo "${line}" | awk '{print $NF}')
@@ -51,7 +51,7 @@ if [ -n "${DAYS_TO_KEEP}" ] && [ "${DAYS_TO_KEEP}" -gt 0 ]; then
 
             if [ "${age_days}" -gt "${DAYS_TO_KEEP}" ]; then
                 echo "Удаляем: ${file_name} (${age_days} дней)"
-                if ! mc rm "s3/${S3_BUCKET}/${file_name}"; then
+                if ! mcli rm "s3/${S3_BUCKET}/${file_name}"; then
                     echo "⚠️ Предупреждение: не удалось удалить ${file_name}"
                 fi
             fi

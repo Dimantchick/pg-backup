@@ -14,7 +14,7 @@ export PGPASSWORD="${POSTGRES_PASSWORD}"
 
 if [ -z "$1" ]; then
     echo "Доступные бэкапы:"
-    mc ls "s3/${S3_BUCKET}/" | grep -E "${POSTGRES_DB}_[0-9]{4}-[0-9]{2}-[0-9]{2}.*\.sql\.gz$" || {
+    mcli ls "s3/${S3_BUCKET}/" | grep -E "${POSTGRES_DB}_[0-9]{4}-[0-9]{2}-[0-9]{2}.*\.sql\.gz$" || {
         echo "❌ Ошибка при получении списка бэкапов" >&2
         exit 1
     }
@@ -30,7 +30,7 @@ echo "[$(date)] Начало восстановления базы ${POSTGRES_DB
 
 # Загрузка файла из S3
 echo "1. Загрузка файла из S3..."
-mc cp "s3/${S3_BUCKET}/${FILE}" "${TMP_FILE}" || {
+mcli cp "s3/${S3_BUCKET}/${FILE}" "${TMP_FILE}" || {
     echo "❌ Ошибка: Не удалось загрузить файл ${FILE} из S3" >&2
     exit 1
 }
