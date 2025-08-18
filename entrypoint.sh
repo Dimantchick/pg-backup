@@ -9,6 +9,7 @@ host_base = ${S3_ENDPOINT:-s3.cloud.ru}
 host_bucket = %(bucket)s.${S3_ENDPOINT:-s3.cloud.ru}
 use_https = True
 bucket_location = ${S3_REGION:-ru-central-1}
+human_readable_sizes = True
 EOF
 
 # Проверяем наличие переменной CRON_SCHEDULE
