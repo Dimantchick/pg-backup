@@ -1,4 +1,4 @@
-FROM alpine:latest
+FROM alpine:3.22
 
 RUN apk add --no-cache \
     postgresql-client \
@@ -13,11 +13,7 @@ RUN addgroup -S appuser && adduser -S appuser -G appuser -h /app
 
 RUN mkdir -p /app /var/log && \
     touch /var/log/cron.log && \
-    chown -R appuser:appuser /app /var/log/cron.log && \
-    chmod 666 /var/log/cron.log
-
-# Разрешаем crond работать от non-root пользователя
-RUN chmod u+s /usr/sbin/crond
+    chown -R appuser:appuser /app /var/log/cron.log
 
 WORKDIR /app
 
