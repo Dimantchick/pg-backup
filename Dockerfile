@@ -1,4 +1,4 @@
-FROM alpine:3.22
+FROM alpine:latest
 
 RUN apk add --no-cache \
     postgresql-client \
@@ -6,21 +6,12 @@ RUN apk add --no-cache \
     bash \
     tzdata \
     busybox-extras \
-    gzip \
-    shadow
-
-RUN addgroup -S appuser && adduser -S appuser -G appuser -h /app
-
-RUN mkdir -p /app /var/log && \
-    touch /var/log/cron.log && \
-    chown -R appuser:appuser /app /var/log/cron.log
+    gzip
 
 WORKDIR /app
 
-COPY --chown=appuser:appuser pg_backup.sh pg_restore.sh entrypoint.sh ./
+COPY pg_backup.sh pg_restore.sh entrypoint.sh ./
 RUN chmod +x pg_backup.sh pg_restore.sh entrypoint.sh
-
-USER appuser
 
 ENTRYPOINT ["/app/entrypoint.sh"]
 CMD ["crond", "-f", "-l", "8", "-L", "/dev/stdout"]
