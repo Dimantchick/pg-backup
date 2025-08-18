@@ -30,6 +30,9 @@ echo "$CRON_SCHEDULE /app/pg_backup.sh >> ${CRON_LOG} 2>&1" > /app/crontab
 echo "*/5 * * * * date >> ${CRON_LOG}" >> /app/crontab
 crontab /app/crontab
 
+# Устанавливаем правильные права на лог-файл
+touch ${CRON_LOG} && chmod 666 ${CRON_LOG}
+
 echo "🟢 Контейнер инициализирован"
 echo "👤 Пользователь: $(whoami)"
 echo "📌 Расписание: $CRON_SCHEDULE"
@@ -37,4 +40,5 @@ echo "📝 Логи cron: ${CRON_LOG}"
 echo "🌍 S3 регион: ${S3_REGION:-ru-central-1}"
 echo "📦 Бакет: ${S3_BUCKET}"
 
-exec "$@"
+# Запускаем cron с повышенными правами
+exec sudo -E -u appuser crond -f -l 8 -L /dev/stdout
