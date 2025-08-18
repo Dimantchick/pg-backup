@@ -1,11 +1,12 @@
-FROM alpine:latest
+FROM alpine:3.22
 
 RUN apk add --no-cache \
     postgresql-client \
-    aws-cli \
+    s3cmd \
     bash \
     tzdata \
-    busybox-extras
+    busybox-extras \
+    gzip
 
 WORKDIR /app
 
