@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Проверка обязательных переменных
-if [ -z "${POSTGRES_PASSWORD}" ] || [ -z "${S3_REGION}" ]; then
+if [ -z "${POSTGRES_PASSWORD}" ]; then
     echo "Ошибка: Не заданы необходимые переменные окружения" >&2
     exit 1
 fi
@@ -9,8 +9,8 @@ fi
 export PGPASSWORD="${POSTGRES_PASSWORD}"
 
 if [ -z "$1" ]; then
-    echo "Доступные бэкапы в регионе ${S3_REGION}:"
-    aws s3 --endpoint-url "${S3_ENDPOINT}" --region "${S3_REGION}" ls "s3://${S3_BUCKET}/" || {
+    echo "Доступные бэкапы в Cloud.ru:"
+    s3cmd ls "s3://${S3_BUCKET}/" || {
         echo "Ошибка при получении списка бэкапов" >&2
         exit 1
     }
@@ -22,11 +22,11 @@ fi
 FILE="$1"
 TMP_FILE="/tmp/restore_${FILE}"
 
-echo "[$(date)] Начало восстановления базы ${POSTGRES_DB} из файла ${FILE} (регион: ${S3_REGION})..."
+echo "[$(date)] Начало восстановления базы ${POSTGRES_DB} из файла ${FILE}..."
 
 # Загрузка файла из S3
 echo "1. Загрузка файла из S3..."
-aws s3 --endpoint-url "${S3_ENDPOINT}" --region "${S3_REGION}" cp "s3://${S3_BUCKET}/${FILE}" "${TMP_FILE}" || {
+s3cmd get "s3://${S3_BUCKET}/${FILE}" "${TMP_FILE}" || {
     echo "Ошибка: Не удалось загрузить файл ${FILE} из S3" >&2
     exit 1
 }

@@ -14,9 +14,9 @@ pg_dump -h "${POSTGRES_HOST}" -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" | gzip >
     exit 1
 }
 
-# Загружаем в S3 с указанием региона
-echo "Загрузка в S3 (регион: ${S3_REGION})..."
-aws s3 --endpoint-url "${S3_ENDPOINT}" --region "${S3_REGION}" cp "${TMP_BACKUP}" "s3://${S3_BUCKET}/" || {
+# Загружаем в S3
+echo "Загрузка в S3 (Cloud.ru)..."
+s3cmd put "${TMP_BACKUP}" "s3://${S3_BUCKET}/" || {
     echo "Ошибка загрузки в S3!"
     echo "Проверьте:"
     echo "1. Доступность S3 эндпоинта"
@@ -30,10 +30,10 @@ rm -f "${TMP_BACKUP}"
 # Очистка старых бэкапов
 if [ "${DAYS_TO_KEEP}" -gt 0 ]; then
     echo "Удаление бэкапов старше ${DAYS_TO_KEEP} дней..."
-    aws s3 --endpoint-url "${S3_ENDPOINT}" --region "${S3_REGION}" ls "s3://${S3_BUCKET}/" | \
+    s3cmd ls "s3://${S3_BUCKET}/" | \
     while read -r line; do
         file_date=$(echo "${line}" | awk '{print $1" "$2}')
-        file_name=$(echo "${line}" | awk '{print $4}')
+        file_name=$(echo "${line}" | awk '{print $4}' | sed "s|s3://${S3_BUCKET}/||")
 
         if [[ "${file_name}" =~ ^${POSTGRES_DB}_[0-9]{4}-[0-9]{2}-[0-9]{2}.*\.sql\.gz$ ]]; then
             file_epoch=$(date -d "${file_date}" +%s 2>/dev/null || echo 0)
@@ -44,7 +44,7 @@ if [ "${DAYS_TO_KEEP}" -gt 0 ]; then
 
                 if [ "${age_days}" -gt "${DAYS_TO_KEEP}" ]; then
                     echo "Удаляем: ${file_name} (${age_days} дней)"
-                    if ! aws s3 --endpoint-url "${S3_ENDPOINT}" --region "${S3_REGION}" rm "s3://${S3_BUCKET}/${file_name}"; then
+                    if ! s3cmd del "s3://${S3_BUCKET}/${file_name}"; then
                         echo "Предупреждение: не удалось удалить ${file_name}"
                     fi
                 fi
