@@ -10,6 +10,8 @@ RUN apk add --no-cache \
 
 WORKDIR /app
 
+RUN echo "176.109.98.30 s3.cloud.ru" >> /etc/hosts
+
 COPY pg_backup.sh pg_restore.sh entrypoint.sh ./
 RUN chmod +x pg_backup.sh pg_restore.sh entrypoint.sh
 
